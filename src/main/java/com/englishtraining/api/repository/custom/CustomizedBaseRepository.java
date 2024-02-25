@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 public interface CustomizedBaseRepository {
@@ -21,6 +22,16 @@ public interface CustomizedBaseRepository {
     default <T> Stream<Criteria> equalsCriteria(String field, T value){
         return Stream.ofNullable(value)
                 .map(filter -> new Criteria(field).is(filter));
+    }
+
+    default Stream<Criteria> regexCriteria(String field, String regex){
+        return Stream.ofNullable(regex)
+                .map(filter -> new Criteria(field).regex( Pattern.compile(Pattern.quote(filter), Pattern.CASE_INSENSITIVE)));
+    }
+
+    default Stream<Criteria> elemMatch(String field, Stream<Criteria> criteria){
+        return criteria
+                .map(filter -> new Criteria(field).elemMatch(filter));
     }
 
     default <T> Stream<Criteria> rangeCriteria(String field, T gte, T lte){

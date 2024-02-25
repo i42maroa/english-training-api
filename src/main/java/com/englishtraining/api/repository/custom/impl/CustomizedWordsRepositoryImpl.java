@@ -22,7 +22,6 @@ import reactor.core.publisher.Mono;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.englishtraining.api.constant.WordDocumentConstants.*;
@@ -81,12 +80,12 @@ public class CustomizedWordsRepositoryImpl implements CustomizedWordsRepository 
                 .flatMap(collection -> Mono.from(collection.updateOne(idFilter(id), pushUpdate, new UpdateOptions().arrayFilters(Collections.singletonList(arrayFilter)))));
     }
 
-    private List<Criteria> getWordsPageCriterionList(WordPageInputQuery filters){
+    private List<Criteria> getWordsPageCriterionList(WordPageInputQuery filters) {
         return Stream.of(
-                equalsCriteria("name", filters.getName())
-//                equalsCriteria("translation", filters.getTranslation()),
-//                equalsCriteria("type", filters.getType())
-        )
+                        regexCriteria("name", filters.getName()),
+                        elemMatch("definitions", regexCriteria("translation", filters.getTranslation())),
+                        elemMatch("definitions", equalsCriteria("type", filters.getType()))
+                )
                 .flatMap(Function.identity())
                 .toList();
     }
