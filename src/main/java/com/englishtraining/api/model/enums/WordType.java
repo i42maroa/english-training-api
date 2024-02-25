@@ -1,4 +1,4 @@
-package com.englishtraining.api.domain.enums;
+package com.englishtraining.api.model.enums;
 
 public enum WordType {
     ADJ,

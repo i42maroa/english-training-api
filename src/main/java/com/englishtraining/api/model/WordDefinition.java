@@ -1,7 +1,7 @@
-package com.englishtraining.api.domain;
+package com.englishtraining.api.model;
 
 
-import com.englishtraining.api.domain.enums.WordType;
+import com.englishtraining.api.model.enums.WordType;
 import lombok.Data;
 
 import java.util.List;

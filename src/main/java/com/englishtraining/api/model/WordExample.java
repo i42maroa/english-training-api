@@ -1,4 +1,4 @@
-package com.englishtraining.api.domain;
+package com.englishtraining.api.model;
 
 import lombok.Data;
 
@@ -6,4 +6,5 @@ import lombok.Data;
 public class WordExample {
     String explanation;
     String phrase;
+    String translation;
 }
