@@ -9,6 +9,7 @@ import com.englishtraining.api.model.enums.WordType;
 import com.englishtraining.api.model.input.WordPageInputQuery;
 import com.englishtraining.api.model.output.Pagination;
 import com.englishtraining.api.service.WordsService;
+import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.result.UpdateResult;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
@@ -42,17 +43,38 @@ public class Controller {
 
     @PostMapping("/word")
     public Mono<WordDocument> insertWord(@RequestBody RequestCreateWord request) {
-        return service.insertWord(request);
+        return service.insertWord(request)
+                .subscribeOn(Schedulers.boundedElastic());
+    }
+
+    @DeleteMapping("/word")
+    public Mono<Void> deleteWord(@RequestParam ObjectId id) {
+        return service.deleteWord(id)
+                .subscribeOn(Schedulers.boundedElastic());
     }
 
     @PostMapping("/definition")
     public Mono<UpdateResult> insertDefinition(@RequestBody RequestCreateDefinition request) {
-        return service.insertDefinition(request);
+        return service.insertDefinition(request)
+                .subscribeOn(Schedulers.boundedElastic());
+    }
+
+    @DeleteMapping("/definition")
+    public Mono<UpdateResult> deleteDefinition(@RequestParam ObjectId id, @RequestParam WordType type, @RequestParam String translation) {
+        return service.deleteDefinition(id, type, translation)
+                .subscribeOn(Schedulers.boundedElastic());
     }
 
     @PostMapping("/example")
     public Mono<UpdateResult> insertExample(@RequestBody RequestCreateExample request) {
-        return service.insertExample(request);
+        return service.insertExample(request)
+                .subscribeOn(Schedulers.boundedElastic());
+    }
+
+    @DeleteMapping("/example")
+    public Mono<BulkWriteResult> deleteExample(@RequestParam ObjectId id, @RequestParam WordType type, @RequestParam String translation, @RequestParam Integer pos) {
+        return service.deleteExample(id, type, translation, pos)
+                .subscribeOn(Schedulers.boundedElastic());
     }
 
 }

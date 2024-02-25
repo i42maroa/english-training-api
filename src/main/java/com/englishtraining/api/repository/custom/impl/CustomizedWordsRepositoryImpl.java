@@ -6,6 +6,8 @@ import com.englishtraining.api.model.WordExample;
 import com.englishtraining.api.model.enums.WordType;
 import com.englishtraining.api.model.input.WordPageInputQuery;
 import com.englishtraining.api.repository.custom.CustomizedWordsRepository;
+import com.mongodb.bulk.BulkWriteResult;
+import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
@@ -78,6 +80,32 @@ public class CustomizedWordsRepositoryImpl implements CustomizedWordsRepository 
         return reactiveMongoTemplate
                 .getCollection(WORDS_COLLECTION)
                 .flatMap(collection -> Mono.from(collection.updateOne(idFilter(id), pushUpdate, new UpdateOptions().arrayFilters(Collections.singletonList(arrayFilter)))));
+    }
+
+    @Override
+    public Mono<UpdateResult> pullDefinition(ObjectId id, WordType type, String translation) {
+
+        var elementToPull = new Document("type", type).append("translation", translation);
+        var pullUpdate = Updates.pull("definitions", elementToPull);
+
+        return reactiveMongoTemplate
+                .getCollection(WORDS_COLLECTION)
+                .flatMap(collection -> Mono.from(collection.updateOne(idFilter(id), pullUpdate)));
+    }
+
+    @Override
+    public Mono<BulkWriteResult> pullExampleByArrayPosition(ObjectId id, WordType type, String translation, Integer pos) {
+        //To pull an element, first you should to unset the pos into the array and then make the pull
+        var unsetUpdate = new Document("$unset", new Document(WORDS_DEF_TRANSLATION_EXAMPLES_ARRAY + "." + pos, 1));
+        var pullUpdate = new Document("$pull", new Document(WORDS_DEF_TRANSLATION_EXAMPLES_ARRAY, null));
+        var arrayFilter = new Document("param.type", type).append("param.translation", translation);
+
+        return reactiveMongoTemplate
+                .getCollection(WORDS_COLLECTION)
+                .flatMap(collection -> Mono.from(collection.bulkWrite(List.of(
+                        new UpdateOneModel<>(idFilter(id), unsetUpdate, new UpdateOptions().arrayFilters(Collections.singletonList(arrayFilter))),
+                        new UpdateOneModel<>(idFilter(id), pullUpdate, new UpdateOptions().arrayFilters(Collections.singletonList(arrayFilter)))
+                ))));
     }
 
     private List<Criteria> getWordsPageCriterionList(WordPageInputQuery filters) {

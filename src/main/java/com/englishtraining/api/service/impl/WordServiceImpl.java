@@ -4,11 +4,12 @@ import com.englishtraining.api.domain.WordDocument;
 import com.englishtraining.api.model.RequestCreateDefinition;
 import com.englishtraining.api.model.RequestCreateExample;
 import com.englishtraining.api.model.RequestCreateWord;
+import com.englishtraining.api.model.enums.WordType;
 import com.englishtraining.api.model.input.WordPageInputQuery;
 import com.englishtraining.api.model.output.Pagination;
 import com.englishtraining.api.repository.WordsRepository;
 import com.englishtraining.api.service.WordsService;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.result.UpdateResult;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
@@ -42,12 +43,27 @@ public class WordServiceImpl implements WordsService {
     }
 
     @Override
+    public Mono<Void> deleteWord(ObjectId id) {
+        return wordsRepository.deleteById(id);
+    }
+
+    @Override
     public Mono<UpdateResult> insertDefinition(RequestCreateDefinition definition) {
         return wordsRepository.insertDefinition(definition.getId(), definition.getDefinition());
     }
 
     @Override
+    public Mono<UpdateResult> deleteDefinition(ObjectId id, WordType type, String translation) {
+        return wordsRepository.pullDefinition(id, type, translation);
+    }
+
+    @Override
     public Mono<UpdateResult> insertExample(RequestCreateExample example) {
         return wordsRepository.insertExample(example.getId(), example.getType(), example.getTranslation(), example.getExample());
+    }
+
+    @Override
+    public Mono<BulkWriteResult> deleteExample(ObjectId id, WordType type, String translation, Integer pos) {
+        return wordsRepository.pullExampleByArrayPosition(id, type, translation, pos);
     }
 }
